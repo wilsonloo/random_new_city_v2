@@ -31,7 +31,7 @@ local function export_region_borders(region)
 end
 
 local map = Map.new(W, H)
-for k = 1, 10 do
+for k = 1, 20 do
     local node = map:random(200, 200)
     if node == nil then
         break

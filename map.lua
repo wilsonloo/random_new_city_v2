@@ -155,10 +155,11 @@ random = function(region, cell_w, cell_h)
     assert(cell_w > 0)
     assert(cell_h > 0)
     assert(region ~= nil)
+    local found = nil
     local cell_size = cell_w*cell_h
     if region.list then
         PrintR.print_r("random amound list", region.list)
-        return random_amound_list(region.list, cell_w, cell_h)
+        found = random_amound_list(region.list, cell_w, cell_h)
     elseif region.node then
         local remain = region.cap - region.size
         if remain < cell_size then
@@ -173,7 +174,7 @@ random = function(region, cell_w, cell_h)
         print("split region:", region.rid)
         region.list = split_region(region)
         region.node = nil
-        return random(region, cell_w, cell_h)
+        found = random(region, cell_w, cell_h)
     else
         if region.w*region.w < cell_size then
             print("region empty but too small")
@@ -188,15 +189,18 @@ random = function(region, cell_w, cell_h)
 
         -- add first node
         print("add first node")
-        local node = {
+        found = {
             x = cell_x,
             y = cell_y,
             w = cell_w,
             h = cell_h,
         }
+        region.node = found
+    end
+
+    if found then
         region.size = region.size + (cell_w * cell_h)
-        region.node = node
-        return node
+        return found
     end
 end
 
