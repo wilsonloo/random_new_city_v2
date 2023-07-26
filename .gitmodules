@@ -1,3 +1,0 @@
-[submodule "lib/imgexporter"]
-	path = lib/imgexporter
-	url = git@github.com:wilsonloo/imgexporter.git
