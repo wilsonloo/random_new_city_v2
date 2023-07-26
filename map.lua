@@ -30,9 +30,11 @@ local function shuffle_rids()
 end
 
 local function rand_cell(x, y, w, h, cell_w, cell_h)
-    local cell_x = mrandom(x, x + cell_w)
-    local cell_y = mrandom(y, y + cell_h)
-    return cell_x, cell_y
+    if w >= cell_w and h >= cell_h then
+        local cell_x = mrandom(x, x + w - cell_w)
+        local cell_y = mrandom(y, y + h - cell_h)
+        return cell_x, cell_y
+    end
 end
 
 local function add_node(region, nx, ny, nw, nh)
@@ -162,16 +164,30 @@ random = function(region, cell_w, cell_h)
         if remain < cell_size then
             return
         end
+        
+        if (region.w/2)*(region.h/2) < cell_w*cell_h then
+            print("sub region too small to split")
+            return
+        end
+
         print("split region:", region.rid)
         region.list = split_region(region)
         region.node = nil
         return random(region, cell_w, cell_h)
     else
+        if region.w*region.w < cell_size then
+            print("region empty but too small")
+            return
+        end
+
+        local cell_x, cell_y = rand_cell(region.x, region.y, region.w, region.h, cell_w, cell_h)
+        if cell_x == nil then
+            print("region empty but too small-2")
+            return            
+        end
+
         -- add first node
         print("add first node")
-        local cell_x, cell_y = rand_cell(region.x, region.y, region.w, region.h, cell_w, cell_h)
-        assert(cell_x)
-        assert(cell_y)
         local node = {
             x = cell_x,
             y = cell_y,

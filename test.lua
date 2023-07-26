@@ -6,8 +6,8 @@ local Exporter = require("lib.imgexporter.exporter")
 
 local outdir = ...
 
-local W = 200
-local H = 200
+local W = 1000
+local H = 1000
 
 local REGION_BORDER_COLOR = {r=255, g=0, b=0}
 local exp = Exporter.new(W, H, "exp")
@@ -32,11 +32,15 @@ end
 
 local map = Map.new(W, H)
 for k = 1, 10 do
-    local node = map:random(40, 40)
+    local node = map:random(200, 200)
+    if node == nil then
+        break
+    end
+
     PrintR.print_r(k, node)
     exp:rect(node.x, node.y, node.w, node.h)
 
-    PrintR.print_r("map:", map)
+    -- PrintR.print_r("map:", map)
     export_region_borders(map.region)
     exp:write(outdir.."/"..k..".json")
 end
