@@ -2,7 +2,7 @@
 
 newdir=""
 k=1
-while [ $k -lt 10 ]
+while [ $k -lt 1000 ]
 do
     subdir="./output/"$k
     if [ ! -d $subdir ]
@@ -14,7 +14,11 @@ do
     k=$(($k+1))
 done
 
-if [ "$newdir" != "" ]
+if [ "$newdir" == "" ]
 then
-    lua ./test.lua $newdir
+    echo "too many outputs"
+    exit 1
 fi
+
+lua ./test.lua $newdir
+cd tools/imggenerater && python3 generate.py ../../$newdir

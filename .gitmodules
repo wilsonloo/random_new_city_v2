@@ -1,3 +1,6 @@
 [submodule "lib/imgexporter"]
 	path = lib/imgexporter
 	url = ssh://git@192.168.3.10:10022/wilson/imgexporter.git
+[submodule "tools/imggenerater"]
+	path = tools/imggenerater
+	url = ssh://git@192.168.3.10:10022/wilson/imggenerater.git

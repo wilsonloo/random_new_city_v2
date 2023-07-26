@@ -14,6 +14,6 @@ local map = Map.new(W, H)
 for k = 1, 10 do
     local node = map:random(40, 40)
     PrintR.print_r(k, node)
-    exp:rect(node.x, node.y, node.w, node.h, k)
+    exp:rect(node.x, node.y, node.w, node.h)
     exp:write(outdir.."/"..k..".json")
 end
