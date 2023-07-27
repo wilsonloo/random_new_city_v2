@@ -22,3 +22,4 @@ fi
 
 lua ./test.lua $newdir
 cd tools/imggenerater && python3 generate.py ../../$newdir
+echo "done to "$newdir

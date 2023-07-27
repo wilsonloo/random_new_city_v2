@@ -30,6 +30,7 @@ local function export_region_borders(region)
     end
 end
 
+-- math.randomseed(os.time())
 local map = Map.new(W, H)
 for k = 1, 20 do
     local node = map:random(200, 200)

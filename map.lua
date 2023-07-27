@@ -18,7 +18,7 @@ local function gen_rid()
     return g_rid
 end
 
-local function shuffle_rids()
+local function shuffle_slots()
     local list = {RID_LT, RID_RT, RID_RB, RID_LB}
     for k = 1, 2 do
         local a = mrandom(1, 4)
@@ -181,6 +181,8 @@ local function calc_cross_space(region, x, y, w, h)
     end
 end
 
+
+
 local mt = {}
 mt.__index = mt
 
@@ -199,12 +201,51 @@ function mt:check_can_fill(x, y, w, h)
     return space == 0
 end
 
+local function calc_max_right(region, x, y, xmax, ymax)
+    if region.list then
+        local new_xmax = xmax
+        local ret = calc_max_right(region.list[RID_LT], x, y, new_xmax, ymax)
+        new_xmax = mmin(new_xmax, ret)
+        ret = calc_max_right(region.list[RID_LB], x, y, new_xmax, ymax)
+        new_xmax = mmin(new_xmax, ret)
+        if new_xmax == xmax then
+            ret = calc_max_right(region.list[RID_RT], x, y, new_xmax, ymax)
+            new_xmax = mmin(new_xmax, ret)
+            ret = calc_max_right(region.list[RID_RB], x, y, new_xmax, ymax)
+            new_xmax = mmin(new_xmax, ret)
+        end
+        return new_xmax
+
+    elseif region.node then
+        local w_min = mmax(region.node.x, x)
+        local w_max = mmin(region.node.x+region.node.w, xmax)
+        if w_max <= w_min then
+            return xmax
+        end
+
+        local h_min = mmax(region.node.y, y)
+        local h_max = mmin(region.node.y+region.node.h, ymax)
+        if h_max <= h_min then
+            return xmax
+        end
+
+        return region.node.x
+    else
+        return xmax
+    end
+end
+
+function mt:shuffle_shift(found, xmax)
+    local new_xmax = calc_max_right(self.region, found.x+found.w+1, found.y, xmax, found.y+found.h)
+    found.x = mrandom(found.x, new_xmax-found.w)
+end
 
 function mt:random_with_small_region(region, cell_w, cell_h)
     print("random_with_small_region:", region.rid)
     if region.list then
-        for _, r in ipairs(region.list) do
-            local found = self:random_with_small_region(r, cell_w, cell_h)
+        local slots = shuffle_slots()
+        for _, slot in ipairs(slots) do
+            local found = self:random_with_small_region(region.list[slot], cell_w, cell_h)
             if found then
                 return found
             end
@@ -233,19 +274,27 @@ function mt:random_with_small_region(region, cell_w, cell_h)
 
     PrintR.print_r("xlist:", xlist)
     PrintR.print_r("ylist:", ylist)
+    local found = nil
     for _, x in ipairs(xlist) do
         for _, y in ipairs(ylist) do
             print("scaning:", x, y)
             if self:check_can_fill(x, y, cell_w, cell_h) then
-                return {
+                found = {
                     x = x,
                     y = y,
                     w = cell_w,
                     h = cell_h,
                 }
+                break
             end
         end
     end
+
+    if found then
+        self:shuffle_shift(found, region.x+region.w-1+cell_w)
+    end
+
+    return found
 end
 
 function mt:random_amound_list(region_list, cell_w, cell_h)
