@@ -361,8 +361,8 @@ function mt:random_with_small_region(region, cell_w, cell_h)
     end
 
     if found then
-        local xmax = region.x+region.w-1+cell_w
-        local ymax = region.y+region.h-1+cell_h
+        local xmax = mmin(region.x+region.w-1+cell_w, self.w)
+        local ymax = mmin(region.y+region.h-1+cell_h, self.h)
         self:shuffle_shift(found, xmax, ymax)
     end
 

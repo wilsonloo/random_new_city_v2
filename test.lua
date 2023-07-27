@@ -12,12 +12,19 @@ local H = 1000
 local REGION_BORDER_COLOR = {r=255, g=0, b=0}
 local BLOCK_COLOR = {r=0, g=255, b=0}
 
+-- math.randomseed(os.time())
+local EXPORT_REGION_RID = false
+
 local exp = Exporter.new(W, H, "exp")
 
 local exported_regions = {}
 local function do_export_region_border(region)
     if not exported_regions[region.rid] then
-        exp:rect_color(REGION_BORDER_COLOR, region.x, region.y, region.w, region.h, tostring(region.rid))
+        local rid = nil
+        if EXPORT_REGION_RID and region.rid then
+            rid = tostring(region.rid)
+        end
+        exp:rect_color(REGION_BORDER_COLOR, region.x, region.y, region.w, region.h, rid)
         exported_regions[region.rid] = true
         print("region border:", region.rid)
     end
@@ -31,8 +38,6 @@ local function export_region_borders(region)
         end
     end
 end
-
--- math.randomseed(os.time())
 
 local blocks = {
     {
@@ -87,15 +92,13 @@ end
 export_region_borders(map.region)
 exp:write(outdir.."/0.json")
 
-for k = 1, 2 do
+for k = 1, 10 do
     print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", k)
-    
+
     local node = map:random(200, 200)
     if node == nil then
-        -- node = map:random_cross(200, 200)
-        if node == nil then
-            break
-        end
+        print("no any more")
+        break
     end
 
     PrintR.print_r(k, node)
