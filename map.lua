@@ -42,17 +42,39 @@ end
 local split_region
 local add_node_into_region_list
 local function add_node(region, nx, ny, nw, nh)
-    if region.node ~= nil then
-        split_region(region)
+    if nw <= 0 or nh <= 0 then
+        return
     end
     
-    region.node = {
+    local node = {
         x = nx,
         y = ny,
         w = nw,
         h = nh,
     }
-    region.size = region.size + nw*nh
+
+    if region.list ~= nil then
+        print("region:", region.rid, "add to list...")
+        add_node_into_region_list(region, node)
+    elseif region.node ~= nil then
+        print("region:", region.rid, "add to existing node...")
+        split_region(region)
+        add_node_into_region_list(region, node)
+    else
+        local xmin = mmax(nx, region.x)
+        local xmax = mmin(nx+nw, region.x+region.w)
+        local ymin = mmax(ny, region.y)
+        local ymax = mmin(ny+nh, region.y+region.h)
+        if xmax > xmin and ymax > ymin then
+            node.x = xmin
+            node.y = ymin
+            node.w = xmax-xmin
+            node.h = ymax-ymin
+            print("region:", region.rid, "add to empty:", node.x, node.y, node.w, node.h)
+            region.node = node
+            region.size = region.size + node.w*node.h
+        end
+    end
 end
 
 add_node_into_region_list = function(region, node)
@@ -113,6 +135,12 @@ split_region = function(region)
         [RID_LB] = create_region(region.x, region.y+halfh, halfw, halfh),
         [RID_RB] = create_region(region.x+halfw, region.y+halfh, halfw, halfh),
     }
+
+    print("region:", region.rid, "split to:")
+    for k = 1, 4 do
+        local e = region.list[k]
+        print("      ", e.rid, ":", e.x, e.y, e.w, e.h) 
+    end
     
     if node then
         region.size = region.size - node.w*node.h
@@ -182,7 +210,6 @@ local function calc_cross_space(region, x, y, w, h)
 end
 
 
-
 local mt = {}
 mt.__index = mt
 
@@ -199,6 +226,11 @@ function mt:check_can_fill(x, y, w, h)
 
     local space = calc_cross_space(self.region, x, y, w, h)
     return space == 0
+end
+
+function mt:add_node(x, y, w, h)
+    print("main add_node:", x, y, w, h)
+    add_node(self.region, x, y, w, h)
 end
 
 local function calc_max_right(region, x, y, xmax, ymax)
@@ -390,7 +422,7 @@ function mt:do_random(region, cell_w, cell_h)
             found = self:random_with_small_region(region, cell_w, cell_h)
             if found ~= nil then
                 PrintR.print_r("small found:", found)
-                add_node_into_region_list(region, found)
+                self:add_node(found.x, found.y, found.w, found.h)
             end
         end
     else
