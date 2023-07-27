@@ -34,7 +34,10 @@ local map = Map.new(W, H)
 for k = 1, 20 do
     local node = map:random(200, 200)
     if node == nil then
-        break
+        -- node = map:random_cross(200, 200)
+        if node == nil then
+            break
+        end
     end
 
     PrintR.print_r(k, node)

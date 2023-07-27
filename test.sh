@@ -14,7 +14,7 @@ do
     k=$(($k+1))
 done
 
-if [ "$newdir" == "" ]
+if [ "$newdir" = "" ]
 then
     echo "too many outputs"
     exit 1
