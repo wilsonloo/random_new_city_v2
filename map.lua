@@ -235,9 +235,47 @@ local function calc_max_right(region, x, y, xmax, ymax)
     end
 end
 
-function mt:shuffle_shift(found, xmax)
+local function calc_max_down(region, x, y, xmax, ymax)
+    if region.list then
+        local new_ymax = ymax
+        local ret = calc_max_down(region.list[RID_LT], x, y, xmax, new_ymax)
+        new_ymax = mmin(new_ymax, ret)
+        ret = calc_max_down(region.list[RID_RT], x, y, xmax, new_ymax)
+        new_ymax = mmin(new_ymax, ret)
+        if new_ymax == ymax then
+            ret = calc_max_down(region.list[RID_LB], x, y, xmax, new_ymax)
+            new_ymax = mmin(new_ymax, ret)
+            ret = calc_max_down(region.list[RID_RB], x, y, xmax, new_ymax)
+            new_ymax = mmin(new_ymax, ret)
+        end
+        return new_ymax
+
+    elseif region.node then
+        local w_min = mmax(region.node.x, x)
+        local w_max = mmin(region.node.x+region.node.w, xmax)
+        if w_max <= w_min then
+            return ymax
+        end
+
+        local h_min = mmax(region.node.y, y)
+        local h_max = mmin(region.node.y+region.node.h, ymax)
+        if h_max <= h_min then
+            return ymax
+        end
+
+        return region.node.y
+    else
+        return ymax
+    end
+end
+
+
+function mt:shuffle_shift(found, xmax, ymax)
     local new_xmax = calc_max_right(self.region, found.x+found.w+1, found.y, xmax, found.y+found.h)
     found.x = mrandom(found.x, new_xmax-found.w)
+
+    local new_ymax = calc_max_down(self.region, found.x, found.y+found.h+1, found.x+found.w, ymax)
+    found.y = mrandom(found.y, new_ymax-found.h)
 end
 
 function mt:random_with_small_region(region, cell_w, cell_h)
@@ -291,7 +329,9 @@ function mt:random_with_small_region(region, cell_w, cell_h)
     end
 
     if found then
-        self:shuffle_shift(found, region.x+region.w-1+cell_w)
+        local xmax = region.x+region.w-1+cell_w
+        local ymax = region.y+region.h-1+cell_h
+        self:shuffle_shift(found, xmax, ymax)
     end
 
     return found

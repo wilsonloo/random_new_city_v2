@@ -15,7 +15,7 @@ local exp = Exporter.new(W, H, "exp")
 local exported_regions = {}
 local function do_export_region_border(region)
     if not exported_regions[region.rid] then
-        exp:rect_color(REGION_BORDER_COLOR, region.x, region.y, region.w, region.h)
+        exp:rect_color(REGION_BORDER_COLOR, region.x, region.y, region.w, region.h, tostring(region.rid))
         exported_regions[region.rid] = true
         print("region border:", region.rid)
     end
@@ -30,7 +30,7 @@ local function export_region_borders(region)
     end
 end
 
--- math.randomseed(os.time())
+math.randomseed(os.time())
 local map = Map.new(W, H)
 for k = 1, 20 do
     local node = map:random(200, 200)
