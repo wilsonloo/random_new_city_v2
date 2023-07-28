@@ -13,7 +13,7 @@ local REGION_BORDER_COLOR = {r=255, g=0, b=0}
 local BLOCK_COLOR = {r=0, g=255, b=0}
 
 -- math.randomseed(os.time())
-local EXPORT_REGION_RID = false
+local EXPORT_REGION_RID = true
 
 local exp = Exporter.new(W, H, "exp")
 
@@ -39,52 +39,35 @@ local function export_region_borders(region)
     end
 end
 
+local map = Map.new(W, H)
 local blocks = {
     {
-        y = 772,
-        h = 200,
+        y = 285,
+        x = 602,
         w = 200,
-        x = 238,
+        h = 200,
     },
     {
-        y = 215,
-        h = 200,
+        y = 63,
+        x = 91,
         w = 200,
-        x = 176,
+        h = 200,
     },
     {
-        y = 68,
-        h = 200,
+        y = 741,
+        x = 272,
         w = 200,
-        x = 678,
+        h = 200,
     },
     {
-        y = 755,
-        h = 200,
+        y = 555,
+        x = 616,
         w = 200,
-        x = 591,
-    },
-    {
-        y = 9,
         h = 200,
-        w = 200,
-        x = 101,
-    },
-    {
-        y = 399,
-        h = 200,
-        w = 200,
-        x = 680,
-    },
-    {
-        y = 547,
-        h = 200,
-        w = 200,
-        x = 50,
-    },
+    }
 }
 
-local map = Map.new(W, H)
+blocks = {}
 for _, b in ipairs(blocks) do
     map:add_node(b.x, b.y, b.w, b.h)
     exp:rect_color(BLOCK_COLOR, b.x, b.y, b.w, b.h)
@@ -92,7 +75,7 @@ end
 export_region_borders(map.region)
 exp:write(outdir.."/0.json")
 
-for k = 1, 10 do
+for k = 1, 100 do
     print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", k)
 
     local node = map:random(200, 200)

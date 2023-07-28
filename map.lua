@@ -82,8 +82,8 @@ add_node_into_region_list = function(region, node)
     local ny = node.y
     local nw = node.w
     local nh = node.h
-    local halfw = region.w/2
-    local halfh = region.h/2
+    local halfw = mceil(region.w/2)
+    local halfh = mceil(region.h/2)
     local halfx = region.x + halfw
     local halfy = region.y + halfh
     if nx < halfx and ny < halfy then
@@ -101,11 +101,12 @@ add_node_into_region_list = function(region, node)
         local rty = mmax(ny, halfy)
         add_node(region.list[RID_LB], nx, rty, rtx-nx, ny+nh-rty)
     end
-    if nx+nx >= halfx and ny+nh >= halfy then
+    if nx+nw >= halfx and ny+nh >= halfy then
         local ltx = mmax(nx, halfx)
         local lty = mmax(ny, halfy)
         add_node(region.list[RID_RB], ltx, lty, nx+nw-ltx, ny+nh-lty)
     end
+    region.size = region.size + node.w*node.h
 end
 
 local function create_region(x, y, w, h)
@@ -136,15 +137,21 @@ split_region = function(region)
         [RID_RB] = create_region(region.x+halfw, region.y+halfh, halfw, halfh),
     }
 
-    print("region:", region.rid, "split to:")
-    for k = 1, 4 do
-        local e = region.list[k]
-        print("      ", e.rid, ":", e.x, e.y, e.w, e.h) 
-    end
-    
+    print("split region:", region.rid, "to:",
+        region.list[1].rid, 
+        region.list[2].rid, 
+        region.list[3].rid,
+        region.list[4].rid)
+
     if node then
         region.size = region.size - node.w*node.h
         add_node_into_region_list(region, node)
+    end
+
+    print("region:", region.rid, "split result:")
+    for k = 1, 4 do
+        local e = region.list[k]
+        print("      ", e.rid, ":", e.x, e.y, e.w, e.h, "size:", e.size) 
     end
 end
 
@@ -304,10 +311,15 @@ end
 
 function mt:shuffle_shift(found, xmax, ymax)
     local new_xmax = calc_max_right(self.region, found.x+found.w+1, found.y, xmax, found.y+found.h)
-    found.x = mrandom(found.x, new_xmax-found.w)
+    if new_xmax-found.w >= found.x then
+        found.x = mrandom(found.x, new_xmax-found.w)
+    end
 
     local new_ymax = calc_max_down(self.region, found.x, found.y+found.h+1, found.x+found.w, ymax)
-    found.y = mrandom(found.y, new_ymax-found.h)
+    if new_ymax-found.h >= found.y then
+        print(333, found.y, new_ymax, found.h)
+        found.y = mrandom(found.y, new_ymax-found.h)
+    end
 end
 
 function mt:random_with_small_region(region, cell_w, cell_h)
@@ -396,6 +408,17 @@ function mt:do_random(region, cell_w, cell_h)
             region.list[4].rid)
 
         found = self:random_amound_list(region.list, cell_w, cell_h)
+        if found then
+            region.size = region.size + (cell_w * cell_h)
+        else
+            -- currenly smallest region
+            -- maybe region.node too small
+            found = self:random_with_small_region(region, cell_w, cell_h)
+            if found ~= nil then
+                PrintR.print_r("small found:", found)
+                self:add_node(found.x, found.y, found.w, found.h)
+            end
+        end  
     elseif region.node then
         local node = region.node
         local remain = region.cap - region.size
@@ -408,15 +431,13 @@ function mt:do_random(region, cell_w, cell_h)
             return
         end
 
+        print("region:", region.rid, "node existing, will split")
         split_region(region)
-        print("split region:", region.rid, "to:",
-            region.list[1].rid, 
-            region.list[2].rid, 
-            region.list[3].rid,
-            region.list[4].rid)
 
         found = self:do_random(region, cell_w, cell_h)
-        if found == nil then
+        if found then
+            region.size = region.size + (cell_w * cell_h)
+        else
             -- currenly smallest region
             -- maybe region.node too small
             found = self:random_with_small_region(region, cell_w, cell_h)
@@ -448,12 +469,11 @@ function mt:do_random(region, cell_w, cell_h)
             h = cell_h,
         }
         region.node = found
+        region.size = region.size + (cell_w * cell_h)
+        print("region:", region.rid, "size:", region.size)
     end
 
-    if found then
-        region.size = region.size + (cell_w * cell_h)
-        return found
-    end
+    return found
 end
 
 function mt:random(cell_w, cell_h)
